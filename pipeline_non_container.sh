@@ -1,6 +1,13 @@
 #!/bin/bash
 
 RUN_DIR=$PWD
+DATADIR=$RUN_DIR
+
+usage (){
+  echo "bash $(readlink -f $0) <ID>"
+  exit 1
+}
+
 
 # inspect run script location
 FD_REPO=$(readlink -f $(dirname "$0"));
@@ -8,6 +15,11 @@ CODEDIR=$FD_REPO/src/complex_assembly
 
 # database dir
 DATABASE_DIR="/mnt/db/"
+ID=$1
+if [[ "$ID" == "" || ! -f "${DATADIR}/${ID}_useqs.csv" || ! -f "${DATADIR}/${ID}_chains.csv" ]];then
+  echo "ID is not valid \$1 or files not found ${DATADIR}/${ID}_useqs.csv"
+  usage
+fi
 
 # Path and user config
 # change here if you wish to use a alternate version of any database.
@@ -19,8 +31,8 @@ source activate alphafold
 set -e
 #############PARAMETERS#############
  #Where all scripts are run from, now the current directory
-ID=1A8R
-DATADIR=$RUN_DIR
+
+
 HHBLITS=$(which hhblits) #Path to hhblits
 HHBLITSDB=$uniclust30_database_path
 
@@ -31,7 +43,12 @@ HHBLITSDB=$uniclust30_database_path
 #########INPUTS and PATHS##########
 USEQS=$DATADIR/$ID'_useqs.csv'
 CHAINS=$DATADIR/$ID'_chains.csv'
-INTERACTIONS='' #Leave empty if the interactions are not known - here they are not used. See the file $DATADIR/$ID'_ints.csv' for how to supply such a file
+if [[ ! -f $DATADIR/$ID'_ints.csv' ]];then
+  INTERACTIONS='' #Leave empty if the interactions are not known - here they are not used. See the file $DATADIR/$ID'_ints.csv' for how to supply such a file
+else
+  INTERACTIONS=$DATADIR/$ID'_ints.csv'
+fi
+
 SUBSIZE=3 #What order the subcomplexes should be (2 or 3)
 GET_ALL=1 #If to get all interactions (1) or not (0) - when the interactions are known
 #########OUTPUTS#########
